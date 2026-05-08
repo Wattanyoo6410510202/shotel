@@ -1,11 +1,38 @@
 <script setup lang="ts">
-import { inject, type Ref, ref, onMounted } from 'vue'
+import { inject, type Ref, ref, computed, onMounted } from 'vue'
 import type { messages } from '../i18n'
 
 const lang = inject('lang') as Ref<string>
 const msgs = inject('messages') as typeof messages
 
 const activeIndex = ref(0)
+const activeRoomTab = ref<'rooms' | 'suites'>('rooms')
+
+const roomData = {
+  rooms: {
+    title: 'Rooms',
+    description: 'Discover spacious, light-filled rooms designed for true relaxation with handcrafted details and modern comforts.',
+    features: [
+      '42 sqm',
+      'Garden, cityscape, pool or golf course views',
+      'Marble bathroom with separate tub and rain shower',
+    ],
+    image: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1200&q=80',
+  },
+  suites: {
+    title: 'Suites',
+    description: 'Elevate your stay in our exclusive suites with private lounge areas, premium finishes and luxurious amenities.',
+    features: [
+      '75 sqm',
+      'Generous living area with panoramic windows',
+      'Private balcony and premium service',
+    ],
+    image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1200&q=80',
+  },
+}
+
+const currentRoom = computed(() => roomData[activeRoomTab.value])
+
 const reviews = (msgs[lang.value as keyof typeof msgs].sections as any).reviewList
 onMounted(() => {
   setInterval(() => {
@@ -47,30 +74,63 @@ onMounted(() => {
 
   <section id="rooms" class="section">
     <div class="container">
-      <h2 class="section-title fade-in-on-scroll">{{ msgs[lang as keyof typeof msgs].sections.rooms }}</h2>
-
-      <div class="rooms-layered-layout fade-in-on-scroll">
-        <div class="room-img-container">
-          <img src="https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=800&q=80"
-            alt="Deluxe Room">
-        </div>
-        <div class="room-text-container">
-          <h3>{{ msgs[lang as keyof typeof msgs].sections.deluxe }}</h3>
-          <p>Experience refined comfort with our premium amenities and city views.</p>
-          <button class="btn-luxury">BOOK NOW</button>
+      <div class="rooms-header fade-in-on-scroll">
+        <span class="rooms-pretitle">ACCOMMODATION</span>
+        <h2 class="section-title">Choose your sanctuary</h2>
+        <div class="rooms-tabs">
+          <button
+            class="room-tab"
+            :class="{ active: activeRoomTab === 'rooms' }"
+            @click="activeRoomTab = 'rooms'"
+          >
+            Rooms
+          </button>
+          <button
+            class="room-tab"
+            :class="{ active: activeRoomTab === 'suites' }"
+            @click="activeRoomTab = 'suites'"
+          >
+            Suites
+          </button>
         </div>
       </div>
 
-      <div class="rooms-layered-layout rooms-reverse fade-in-on-scroll" style="transition-delay: 0.3s">
-        <div class="room-img-container">
-          <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=800&q=80"
-            alt="Executive Suite">
-        </div>
-        <div class="room-text-container">
-          <h3>{{ msgs[lang as keyof typeof msgs].sections.suite }}</h3>
-          <p>Indulge in spacious elegance with our exclusive executive suite offerings.</p>
-          <button class="btn-luxury">BOOK NOW</button>
-        </div>
+      <div class="room-panel fade-in-on-scroll" style="transition-delay: 0.3s">
+        <transition name="fade-slide" mode="out-in">
+          <div class="room-image-panel" :key="activeRoomTab">
+            <img :src="currentRoom.image" :alt="currentRoom.title" />
+          </div>
+        </transition>
+
+        <transition name="fade-slide" mode="out-in">
+          <div class="room-content-panel" :key="activeRoomTab">
+            <h3>{{ currentRoom.title }}</h3>
+            <p>{{ currentRoom.description }}</p>
+            <ul class="room-features">
+              <li v-for="(feature, index) in currentRoom.features" :key="index">{{ feature }}</li>
+            </ul>
+            <button class="btn-luxury secondary">View all accommodation</button>
+          </div>
+        </transition>
+      </div>
+    </div>
+  </section>
+
+  <section id="testimonial-hero" class="section testimonial-hero">
+    <div class="testimonial-overlay"></div>
+    <div class="testimonial-inner container fade-in-on-scroll">
+      <div class="testimonial-controls">
+        <button class="testimonial-arrow left" aria-label="Previous testimonial"></button>
+        <button class="testimonial-arrow right" aria-label="Next testimonial"></button>
+      </div>
+      <div class="testimonial-content">
+        <span class="testimonial-kicker">Good Designed Pool Villa</span>
+        <p>“I like the how the pool villa is so fancy and delicate. The room is also very neat and tidy. I wish to come here again next time. The staff were really nice and helpful. I would definitely recommend my friends to stay here next time.”</p>
+        <span class="testimonial-name">— Hayley P</span>
+      </div>
+      <div class="testimonial-indicators">
+        <span class="indicator active"></span>
+        <span class="indicator"></span>
       </div>
     </div>
   </section>
@@ -122,35 +182,315 @@ onMounted(() => {
 }
 
 .section {
-  padding: 60px 0;
+  padding: 80px 0;
 }
 
 .section-title {
   text-align: center;
+  margin-bottom: 48px;
+  font-size: 2.4rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rooms-header {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
   margin-bottom: 40px;
-  font-size: 2.2rem;
+}
+
+.rooms-pretitle {
+  font-size: 0.8rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.rooms-tabs {
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(19, 19, 19, 0.05);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.room-tab {
+  padding: 14px 28px;
+  background: transparent;
+  border: none;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.room-tab.active {
+  background: var(--color-primary);
+  color: var(--color-white);
+  box-shadow: 0 16px 35px rgba(20, 20, 20, 0.14);
+}
+
+.room-panel {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 28px;
+  align-items: center;
+  transition: all 0.35s ease;
+}
+
+.room-image-panel {
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(20, 20, 20, 0.12);
+  transition: box-shadow 0.35s ease, transform 0.35s ease;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.room-image-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.room-content-panel {
+  padding: 44px;
+  background: #f8f4ef;
+  border-radius: 28px;
+  box-shadow: 0 28px 70px rgba(20, 20, 20, 0.09);
+  transition: all 0.35s ease;
+}
+
+.room-content-panel h3 {
+  margin-bottom: 22px;
+  font-size: 2.05rem;
+}
+
+.room-content-panel p {
+  margin-bottom: 26px;
+  color: var(--color-muted);
+  line-height: 1.85;
+}
+
+.room-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 34px;
+  display: grid;
+  gap: 14px;
+}
+
+.room-features li {
+  position: relative;
+  padding-left: 26px;
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.room-features li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.btn-luxury.secondary {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+
+.poolvilla-section {
+  padding-top: 100px;
+}
+
+
+.testimonial-hero {
+  position: relative;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=80&sat=-10&exp=15');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+.testimonial-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.55);
+}
+
+.testimonial-inner {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: #ffffff;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 120px 24px;
+  transition: all 0.35s ease;
+}
+
+.testimonial-kicker {
+  display: block;
+  font-size: 0.85rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+}
+
+.testimonial-content p {
+  font-size: clamp(1rem, 1.2vw, 1.2rem);
+  line-height: 1.9;
+  margin: 0 auto 34px;
+  max-width: 680px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.testimonial-name {
+  display: block;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.testimonial-controls {
+  position: absolute;
+  inset: auto 30px 30px auto;
+  z-index: 2;
+  display: flex;
+  gap: 18px;
+}
+
+.testimonial-arrow {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.testimonial-arrow:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.testimonial-arrow.left::before,
+.testimonial-arrow.right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #fff;
+  border-right: 2px solid #fff;
+  transform: rotate(135deg);
+}
+
+.testimonial-arrow.right::before {
+  transform: rotate(-45deg);
+}
+
+.testimonial-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.indicator {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+}
+
+.indicator.active {
+  background: #ffffff;
+}
+
+@media (max-width: 1024px) {
+  .testimonial-hero {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 1024px) {
+  .room-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .room-content-panel {
+    padding: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rooms-header {
+    gap: 14px;
+  }
+
+  .rooms-tabs {
+    width: 100%;
+  }
+
+  .room-panel {
+    gap: 22px;
+  }
+
+  .room-content-panel {
+    padding: 28px;
+  }
+
+  .room-content-panel h3 {
+    font-size: 1.8rem;
+  }
 }
 
 .highlights-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
 }
 
 .highlight-item {
   position: relative;
   overflow: hidden;
-  height: 450px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  height: 420px;
+  border-radius: 28px;
+  box-shadow: 0 24px 70px rgba(23, 23, 23, 0.12);
 }
 
 .hl-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: 0.5s;
+  transition: transform 0.7s ease, filter 0.7s ease;
 }
 
 .hl-content-slide {
@@ -159,14 +499,14 @@ onMounted(() => {
   right: -100%;
   width: 100%;
   height: 100%;
-  background: rgba(26, 26, 26, 0.92);
-  color: white;
+  background: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(16, 16, 16, 0.78) 58%);
+  color: #f7f4ee;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px;
-  transition: right 0.5s ease-in-out;
+  padding: 36px;
+  transition: right 0.55s ease;
   text-align: center;
 }
 
@@ -175,71 +515,89 @@ onMounted(() => {
 }
 
 .highlight-item:hover .hl-img {
-  filter: brightness(0.4) blur(2px);
-  transform: scale(1.1);
+  transform: scale(1.08);
+  filter: brightness(0.45);
 }
 
-.hl-title {
+.hl-content-slide h3 {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
-  margin-bottom: 20px;
+  font-size: 1.55rem;
+  margin-bottom: 18px;
   color: var(--color-accent);
 }
 
-.hl-desc {
+.hl-content-slide p {
+  color: rgba(255, 255, 255, 0.92);
   font-size: 1rem;
-  line-height: 1.6;
-  color: #fff;
+  line-height: 1.8;
+  max-width: 36rem;
 }
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
 .gallery-grid img {
   width: 100%;
-  height: 250px;
+  height: 270px;
   object-fit: cover;
   filter: grayscale(25%);
-  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.5s ease, filter 0.5s ease, box-shadow 0.5s ease;
+  border-radius: 20px;
+  box-shadow: 0 14px 30px rgba(20, 20, 20, 0.08);
 }
 
 .gallery-grid img:hover {
   filter: grayscale(0%);
-  transform: scale(1.08);
-  z-index: 2;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 22px 50px rgba(20, 20, 20, 0.18);
 }
 
 .section-full {
-  padding: 80px 0 0;
+  padding: 100px 0 0;
+  overflow: hidden;
+  position: relative;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
 
 .map-container-full {
   width: 100%;
-  height: 500px;
+  max-width: 100%;
+  min-height: 70vh;
+  height: 70vh;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: 0 30px 70px rgba(18, 18, 18, 0.14);
+  position: relative;
 }
 
 .map-container-full iframe {
-  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .rooms-layered-layout {
-  display: flex;
-  position: relative;
-  max-width: 1000px;
-  margin: 60px auto;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  max-width: 1100px;
+  margin: 48px auto 0;
+  gap: 28px;
   align-items: center;
 }
 
 .room-img-container {
-  flex: 1;
-  z-index: 1;
-  height: 500px;
+  position: relative;
+  min-height: 500px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px rgba(18, 18, 18, 0.12);
 }
 
 .room-img-container img {
@@ -249,152 +607,236 @@ onMounted(() => {
 }
 
 .room-text-container {
-  flex: 0 0 500px;
-  background: var(--color-primary, #3b1b36);
-  color: white;
-  padding: 60px;
-  margin-left: -100px;
-  z-index: 2;
+  background: linear-gradient(180deg, #1a1a1a 0%, #262626 100%);
+  color: #f7f4ee;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .room-text-container h3 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  font-family: var(--font-serif);
+  font-size: 2.1rem;
+  margin-bottom: 0;
 }
 
 .room-text-container p {
-  margin-bottom: 30px;
-  line-height: 1.8;
-  opacity: 0.9;
+  line-height: 1.9;
+  opacity: 0.94;
+  max-width: 36rem;
 }
 
 .rooms-reverse {
-  flex-direction: row-reverse;
+  direction: rtl;
 }
 
 .rooms-reverse .room-text-container {
-  margin-left: 0;
-  margin-right: -100px;
-}
-
-@media (max-width: 768px) {
-  .rooms-layered-layout {
-    flex-direction: column;
-  }
-
-  .room-text-container {
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: -50px;
-    width: 90%;
-  }
-
-  .highlights-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .highlight-item {
-    height: 300px;
-  }
-
-  .hl-content-slide {
-    padding: 20px;
-  }
-
-  .gallery-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .gallery-grid img {
-    height: 200px;
-  }
-
-  .reviews-wrapper {
-    flex-direction: column;
-  }
-
-  .award-img {
-    order: -1;
-    margin-bottom: 20px;
-  }
+  direction: ltr;
 }
 
 .reviews-wrapper {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1.55fr 0.75fr;
+  gap: 32px;
   align-items: center;
-  gap: 40px;
-  padding: 40px 0;
-  width: 100%;
+  padding: 36px 0 0;
 }
 
 .reviews-carousel {
-  flex: 2;
   position: relative;
+  min-height: 230px;
 }
 
 .carousel-inner {
   position: relative;
-  height: 220px;
+  min-height: 230px;
 }
 
 .review-card {
   position: absolute;
-  width: 100%;
-  padding: 30px;
+  inset: 0;
+  padding: 34px;
   border-left: 4px solid var(--color-accent);
-  background: white;
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(20, 20, 20, 0.08);
 }
 
 .stars {
   color: var(--color-accent);
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-  letter-spacing: 0.1em;
+  margin-bottom: 18px;
+  font-size: 1.3rem;
 }
 
 .review-text {
-  color: #333;
-  font-size: 1rem;
-  line-height: 1.8;
-  margin-bottom: 15px;
+  color: #202020;
+  font-size: 1.03rem;
+  line-height: 1.9;
+  margin-bottom: 22px;
   font-style: italic;
 }
 
 .review-name {
-  color: var(--color-primary);
-  font-weight: 600;
-  font-size: 0.95rem;
+  color: #2b2b2b;
+  font-weight: 700;
+  font-size: 1rem;
 }
 
 .award-img {
-  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .award-img img {
-  max-width: 70%;
+  max-width: 85%;
   height: auto;
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(20, 20, 20, 0.12);
 }
 
-.btn-luxury {
-  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+@media (max-width: 1024px) {
+  .rooms-layered-layout,
+  .reviews-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .room-text-container {
+    padding: 36px;
+  }
 }
 
-.btn-luxury:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(197, 160, 89, 0.3);
+@media (max-width: 768px) {
+  .section {
+    padding: 50px 0;
+  }
+
+  .section-title {
+    font-size: 1.95rem;
+    margin-bottom: 32px;
+  }
+
+  .highlights-grid,
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .highlight-item {
+    height: 320px;
+  }
+
+  .hl-content-slide {
+    padding: 24px;
+  }
+
+  .gallery-grid img {
+    height: 220px;
+  }
+
+  .rooms-layered-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .room-img-container {
+    min-height: 320px;
+  }
+
+  .room-text-container {
+    margin-top: -60px;
+    width: 100%;
+    padding: 28px;
+  }
+
+  .reviews-wrapper {
+    gap: 24px;
+  }
+
+  .award-img {
+    order: -1;
+    width: 100%;
+  }
+
+  .award-img img {
+    max-width: 100%;
+  }
+
+  .map-container-full {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 540px) {
+  .section {
+    padding: 36px 0;
+  }
+
+  .section-title {
+    font-size: 1.6rem;
+    margin-bottom: 24px;
+  }
+
+  .rooms-tabs {
+    max-width: 100%;
+  }
+
+  .room-tab {
+    padding: 10px 16px;
+    font-size: 0.75rem;
+  }
+
+  .room-panel {
+    gap: 20px;
+  }
+
+  .room-content-panel {
+    padding: 24px;
+  }
+
+  .room-content-panel h3 {
+    font-size: 1.6rem;
+  }
+
+  .testimonial-hero {
+    min-height: 420px;
+  }
+
+  .testimonial-inner {
+    padding: 80px 18px;
+  }
+
+  .testimonial-kicker {
+    margin-bottom: 16px;
+  }
+
+  .testimonial-content p {
+    margin-bottom: 24px;
+  }
+
+  .testimonial-controls {
+    display: none;
+  }
+
+  .testimonial-indicators {
+    gap: 10px;
+  }
+
+  .highlight-item {
+    height: 260px;
+  }
+
+  .gallery-grid img {
+    height: 180px;
+  }
+
+  .map-container-full {
+    height: 55vh;
+  }
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.5s;
+  transition: opacity 0.45s ease;
 }
 
 .fade-enter-from,
