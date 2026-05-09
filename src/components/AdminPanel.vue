@@ -151,8 +151,13 @@ const handleDelete = async (id: number) => {
 
     <!-- Authenticated State -->
     <div v-else class="dashboard-layout">
+      <!-- Mobile Sidebar Toggle -->
+      <button class="mobile-toggle-btn" @click="toggleSidebar">
+        {{ isSidebarOpen ? '✕' : '☰' }}
+      </button>
+
       <!-- Sidebar -->
-      <aside class="sidebar">
+      <aside class="sidebar" :class="{ 'mobile-open': isSidebarOpen }">
         <div class="sidebar-header">
           <span class="brand">S HATYAI</span>
           <p class="role-tag">Administrator</p>
@@ -396,10 +401,47 @@ const handleDelete = async (id: number) => {
 .fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+/* Updated Responsive Styles */
+.mobile-toggle-btn {
+  display: none; position: fixed; top: 20px; left: 20px; z-index: 10100;
+  width: 40px; height: 40px; background: #000; color: #fff; border: none; cursor: pointer;
+  align-items: center; justify-content: center; border-radius: 4px;
+}
+.sidebar-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10050;
+}
+
 @media (max-width: 900px) {
-  .sidebar { display: none; }
-  .content-header { padding: 20px 30px; }
-  .content-body { padding: 30px 20px; }
-  .form-grid { grid-template-columns: 1fr; }
+  .mobile-toggle-btn { display: flex; }
+
+  .sidebar {
+    position: fixed;
+    left: -260px; top: 0; bottom: 0; z-index: 10100;
+    transition: left 0.3s ease;
+    background: #111;
+  }
+
+  .sidebar.mobile-open { left: 0; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+  
+  .content-header { padding: 20px; padding-left: 70px; }
+  .content-header h1 { font-size: 1.4rem; }
+  
+  .content-body { padding: 20px; }
+  
+  .promo-grid { grid-template-columns: 1fr; gap: 20px; }
+  
+  .form-grid { grid-template-columns: 1fr; gap: 20px; }
+  .full-width { grid-column: span 1; }
+  
+  .luxury-card h3 { padding: 15px 20px; }
+  .card-body { padding: 20px; }
+  
+  .desktop-only { display: none; }
+}
+
+@media (max-width: 480px) {
+  .promo-actions { flex-direction: column; }
+  .btn-luxury, .btn-secondary { padding: 12px 20px; font-size: 0.8rem; }
+  .header-right .btn-luxury { padding: 8px 16px; }
 }
 </style>
