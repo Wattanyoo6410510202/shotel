@@ -1,18 +1,31 @@
 <script setup lang="ts">
 import { inject, type Ref, ref, onMounted, onUnmounted } from 'vue'
 import type { messages } from '../i18n'
+import { supabase } from '../lib/supabase'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const lang = inject('lang') as Ref<string>
 const msgs = inject('messages') as typeof messages
 const menuOpen = ref(false)
 const isScrolled = ref(false)
+const user = ref<any>(null)
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
+  
+  // Get initial session
+  const { data } = await supabase.auth.getUser()
+  user.value = data.user
+
+  // Listen for auth changes
+  supabase.auth.onAuthStateChange((_event, session) => {
+    user.value = session?.user || null
+  })
 })
 
 onUnmounted(() => {
@@ -32,13 +45,23 @@ const closeMenu = () => {
   menuOpen.value = false
   document.body.style.overflow = ''
 }
+
+const goToLogin = () => {
+  router.push('/login')
+  closeMenu()
+}
+
+const goToProfile = () => {
+  router.push('/profile')
+  closeMenu()
+}
 </script>
 
 <template>
   <header class="header" :class="{ 'menu-open': menuOpen, 'scrolled': isScrolled }">
     <div class="header-inner">
       <div class="header-left">
-        <div class="logo">S HATYAI</div>
+        <router-link to="/" class="logo">S HATYAI</router-link>
       </div>
 
       <nav class="header-right">
@@ -50,10 +73,12 @@ const closeMenu = () => {
         </div>
 
         <div class="contact-actions desktop-only">
-          <div class="contact-details">
-            <span>📞 +66 74 000 000</span>
-            <span>✉ info@shatyai.com</span>
+          <!-- Auth Status -->
+          <div class="auth-section">
+            <button v-if="!user" @click="goToLogin" class="btn-auth">Login</button>
+            <button v-else @click="goToProfile" class="btn-auth">Account</button>
           </div>
+
           <div class="lang-switch">
             <span :class="{ active: lang === 'EN' }" @click="lang = 'EN'">EN</span>
             <span class="divider">/</span>
@@ -81,6 +106,9 @@ const closeMenu = () => {
         <a href="#rooms" @click="closeMenu">{{ msgs[lang as keyof typeof msgs].nav.rooms }}</a>
         <a href="#gallery" @click="closeMenu">{{ msgs[lang as keyof typeof msgs].nav.gallery }}</a>
         <a href="#location" @click="closeMenu">{{ msgs[lang as keyof typeof msgs].nav.location }}</a>
+        <hr class="mobile-divider" />
+        <a v-if="!user" href="#" @click.prevent="goToLogin">Login / Register</a>
+        <a v-else href="#" @click.prevent="goToProfile">My Profile</a>
       </nav>
       <div class="mobile-contact">
         <div class="contact-info">
@@ -143,6 +171,7 @@ const closeMenu = () => {
   text-transform: uppercase;
   position: relative;
   z-index: 2101;
+  text-decoration: none;
   transition: font-size 0.5s ease;
 }
 
@@ -194,6 +223,29 @@ const closeMenu = () => {
   display: flex;
   align-items: center;
   gap: 32px;
+}
+
+.btn-auth {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #f4f1ed;
+  padding: 8px 18px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-auth:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.mobile-divider {
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin: 15px 0;
 }
 
 .contact-details {

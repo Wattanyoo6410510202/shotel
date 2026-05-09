@@ -41,7 +41,7 @@ const closeModal = () => {
         <div class="modal-body">
           <!-- Image Section (Left) -->
           <div class="modal-image-side">
-            <img v-if="promotion.image_url" :src="`${API_URL}${promotion.image_url}`" alt="Promotion" />
+            <img v-if="promotion.image_url" :src="promotion.image_url.startsWith('http') ? promotion.image_url : `${API_URL}${promotion.image_url}`" alt="Promotion" />
             <div v-else class="promo-placeholder">S HATYAI</div>
           </div>
 
@@ -66,7 +66,7 @@ const closeModal = () => {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7); /* Darkened but NO BLUR as requested */
+  background: transparent; /* Background removed as requested */
   display: flex;
   align-items: center;
   justify-content: center;
