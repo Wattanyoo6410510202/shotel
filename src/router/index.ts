@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import AdminPanel from '../components/AdminPanel.vue'
 import LoginView from '../views/LoginView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import CookiePolicyView from '../views/CookiePolicyView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView
+    },
+    {
+      path: '/cookie-policy',
+      name: 'cookie-policy',
+      component: CookiePolicyView
     }
   ]
 })

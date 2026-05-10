@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const lang = inject('lang') as Ref<string>
+const lang = inject('lang') as Ref<keyof typeof messages>
+const updateLang = inject('updateLang') as (lang: 'EN' | 'TH') => void
 const msgs = inject('messages') as typeof messages
 const menuOpen = ref(false)
 const isScrolled = ref(false)
@@ -80,9 +81,9 @@ const goToProfile = () => {
           </div>
 
           <div class="lang-switch">
-            <span :class="{ active: lang === 'EN' }" @click="lang = 'EN'">EN</span>
+            <span :class="{ active: lang === 'EN' }" @click="updateLang('EN')">EN</span>
             <span class="divider">/</span>
-            <span :class="{ active: lang === 'TH' }" @click="lang = 'TH'">TH</span>
+            <span :class="{ active: lang === 'TH' }" @click="updateLang('TH')">TH</span>
           </div>
           <button class="btn-luxury">{{ msgs[lang as keyof typeof msgs].nav.book }}</button>
         </div>
@@ -116,9 +117,9 @@ const goToProfile = () => {
           <div>✉ info@shatyai.com</div>
         </div>
         <div class="lang-switch">
-          <span :class="{ active: lang === 'EN' }" @click="lang = 'EN'">EN</span>
+          <span :class="{ active: lang === 'EN' }" @click="updateLang('EN')">EN</span>
           <span class="divider">/</span>
-          <span :class="{ active: lang === 'TH' }" @click="lang = 'TH'">TH</span>
+          <span :class="{ active: lang === 'TH' }" @click="updateLang('TH')">TH</span>
         </div>
         <button class="btn-luxury">{{ msgs[lang as keyof typeof msgs].nav.book }}</button>
       </div>

@@ -15,7 +15,7 @@ onMounted(async () => {
     return
   }
 
-  const { data, error } = await supabase
+  const { data,  } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
@@ -31,6 +31,14 @@ const handleLogout = async () => {
   await supabase.auth.signOut()
   router.push('/')
 }
+
+const clearCache = () => {
+  if (confirm('Are you sure you want to clear all website data? This will reset your preferences.')) {
+    localStorage.clear()
+    sessionStorage.clear()
+    window.location.reload()
+  }
+}
 </script>
 
 <template>
@@ -39,7 +47,10 @@ const handleLogout = async () => {
     <div v-else-if="profile" class="profile-container">
       <header class="profile-header">
         <h1>My Account</h1>
-        <button @click="handleLogout" class="btn-outline">Logout</button>
+        <div class="actions">
+          <button @click="clearCache" class="btn-danger" style="margin-right: 10px;">Clear Data</button>
+          <button @click="handleLogout" class="btn-outline">Logout</button>
+        </div>
       </header>
 
       <div class="profile-card">
@@ -189,6 +200,17 @@ const handleLogout = async () => {
 .btn-outline {
   background: transparent;
   border: 1px solid #111;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.btn-danger {
+  background: #cf1322;
+  border: 1px solid #cf1322;
+  color: #fff;
   padding: 10px 20px;
   cursor: pointer;
   font-weight: 700;

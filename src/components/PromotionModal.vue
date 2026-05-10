@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { trackEvent } from '../lib/tracker'
 
 const showModal = ref(false)
-const promotion = ref({ image_url: '', description: '' })
+const promotion = ref({ id: 0, image_url: '', description: '' })
 const API_URL = 'http://localhost:3001'
 
 onMounted(async () => {
@@ -25,7 +26,12 @@ onMounted(async () => {
   }
 })
 
-const closeModal = () => {
+const closeModal = (isClick = false) => {
+  if (isClick) {
+    trackEvent('promotion_click', promotion.value.id.toString())
+  } else {
+    trackEvent('promotion_dismiss', promotion.value.id.toString())
+  }
   showModal.value = false
   // Set flag in sessionStorage so it doesn't show again in this session
   sessionStorage.setItem('promo_seen', 'true')
@@ -34,9 +40,9 @@ const closeModal = () => {
 
 <template>
   <Transition name="fade">
-    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal()">
       <div class="modal-content">
-        <button class="close-btn" @click="closeModal">&times;</button>
+        <button class="close-btn" @click="closeModal()">&times;</button>
         
         <div class="modal-body">
           <!-- Image Section (Left) -->
@@ -52,7 +58,7 @@ const closeModal = () => {
               <h2>{{ promotion.image_url ? 'Limited Promotion' : 'Welcome' }}</h2>
               <div class="divider"></div>
               <p>{{ promotion.description }}</p>
-              <button class="btn-luxury" @click="closeModal">Learn More</button>
+              <button class="btn-luxury" @click="closeModal(true)">Learn More</button>
             </div>
           </div>
         </div>
